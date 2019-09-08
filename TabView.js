@@ -3,7 +3,7 @@ const ATTRIBUTE_SYMBOL = Symbol("attribute");
 const EVENT_SYMBOL = Symbol("event");
 const STATE_SYMBOL = Symbol("state");
 
-export default class Tab {
+export default class TabView {
     constructor(config){
         this[PROPERTY_SYMBOL] = Object.create(null);
         this[ATTRIBUTE_SYMBOL] = Object.create(null);
@@ -24,15 +24,16 @@ export default class Tab {
 
     created(){
         this.root = document.createElement("div");
+        this.root.style.display = "flex";
         this.headerContainer = document.createElement("div");
         this.contentContainer = document.createElement("div");
         this.contentContainer.style.whiteSpace = "nowrap";
         this.contentContainer.style.overflow = "hidden";
-        this.contentContainer.style.height = "100%";
+        this.contentContainer.style.flex = "1";
+        this.headerContainer.style.height = "93px";
         this.root.appendChild(this.headerContainer);
         this.root.appendChild(this.contentContainer);
         this[STATE_SYMBOL].h = 0;
-        console.log("!!!!!");
     }
     mounted(){
 
@@ -50,8 +51,13 @@ export default class Tab {
         let title = child.getAttribute("tab-title") || "";
         this[PROPERTY_SYMBOL].headers.push(title);
 
-        let header = document.createElement("header");
+        let header = document.createElement("div");
         header.innerText = title;
+        header.style.display = "inline-block";
+        header.style.height = "93px";
+        header.style.fontFamily = "PingFang SC";
+        header.style.fontSize = "46px";
+        header.style.margin = "20px 35px 0 35px";
         this.headerContainer.appendChild(header);
         child.appendTo(this.contentContainer);
         for(let i = 0; i < this.contentContainer.children.length; i ++) {
@@ -75,8 +81,8 @@ export default class Tab {
     setAttribute(name, value){
         if(name == "style") {
             this.root.setAttribute("style", value);
-            
-
+            this.root.style.display = "flex";
+            this.root.style.flexDirection = "column"
         }
 
         return this[ATTRIBUTE_SYMBOL][name] = value;
