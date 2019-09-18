@@ -1,3 +1,5 @@
+import {enableGesture} from "./gesture.js";
+
 const PROPERTY_SYMBOL = Symbol("property");
 const ATTRIBUTE_SYMBOL = Symbol("attribute");
 const EVENT_SYMBOL = Symbol("event");
@@ -33,7 +35,65 @@ export default class TabView {
         this.headerContainer.style.height = "93px";
         this.root.appendChild(this.headerContainer);
         this.root.appendChild(this.contentContainer);
-        this[STATE_SYMBOL].h = 0;
+
+        this.root.addEventListener("touchmove",function(e){ 
+            e.cancelBubble = true;
+            e.stopPropagation();
+        }, {
+            passive:false
+        });
+
+        this[STATE_SYMBOL].position = 0;
+
+        enableGesture(this.contentContainer);
+
+        let startTransform;
+
+        this.contentContainer.addEventListener("panstart", event => {
+            if(event.isVerticalPan)
+                return;
+            let width = this.contentContainer.getBoundingClientRect().width;
+            startTransform = - this[STATE_SYMBOL].position * width;
+        });
+        this.contentContainer.addEventListener("pan", event => {
+            if(event.isVerticalPan)
+                return;
+            event.origin.preventDefault();
+
+            let children = this.contentContainer.children; 
+            for(let child of children) {
+                child.style.transition = "ease 0s";
+                child.style.transform = `translate(${startTransform + event.dx}px)`;
+            }
+        });
+        this.contentContainer.addEventListener("panend", event => {
+            if(event.isVerticalPan)
+                return;
+            event.origin.preventDefault();
+
+            if(event.isFlick) {
+                if(event.vx > 0)
+                this[STATE_SYMBOL].position --;
+                
+                if(event.vx < 0)
+                this[STATE_SYMBOL].position ++;
+            } else {
+                this[STATE_SYMBOL].position = - (Math.round((startTransform + event.dx) / 500));
+            }
+            let children = this.contentContainer.children; 
+
+            this[STATE_SYMBOL].position = Math.max(0, Math.min(this[STATE_SYMBOL].position, children.length - 1));
+
+            let width = this.contentContainer.getBoundingClientRect().width;
+
+            for(let child of children) {
+                child.style.transition = "ease 0.5s";
+                console.log(this[STATE_SYMBOL].position * width);
+                child.style.transform = `translateX(${- this[STATE_SYMBOL].position * width}px)`
+            }
+        });
+
+
     }
     mounted(){
 
@@ -64,6 +124,7 @@ export default class TabView {
             this.contentContainer.children[i].style.width = "100%";
             this.contentContainer.children[i].style.height = "100%";
             this.contentContainer.children[i].style.display = "inline-block";
+            this.contentContainer.children[i].style.verticalAlign = "top";
         }
 
     }

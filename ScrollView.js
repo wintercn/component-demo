@@ -13,7 +13,34 @@ export default class ScrollView {
 
         this[PROPERTY_SYMBOL].children = [];
 
+        this.bottomPlaceholder = document.createElement("div");
+        this.bottomPlaceholder.style.height = "100px";
+        this.bottomPlaceholder.style.width = "100%";
+        //this.placeholder.style.backgroundColor = "lightgreen";
+
+        this.bottomPlaceholder.style.textAlign = "center";
+
+        this.topPlaceholder = document.createElement("div");
+        this.topPlaceholder.style.overflow = "visible";
+        this.topPlaceholder.style.width = "100%";
+        this.topPlaceholder.style.textAlign = "center";
+        this.topPlaceholder.style.position = "relative";
+
+        this.topContent = document.createElement("div");
+        this.topPlaceholder.appendChild(this.topContent)
+
+
+        this.topContent.style.height = "100px";
+        this.topContent.style.width = "100%";
+        //this.topContent.style.position = "absolute";
+        this.topContent.style.backgroundColor = "rgba(0,127,0,1)";
+        this.topContent.style.zIndex = 100;
+        //this.topContent.style.transform = "translateY(-50%)";
+
+        //this.topContent.innerText = "刷新";
+
         this.created();
+
     }
 
     appendTo(element){
@@ -23,13 +50,23 @@ export default class ScrollView {
 
     created(){
         this.root = document.createElement("div");
-        this.root.addEventListener("touchmove",function(e){ 
-            e.cancelBubble = true;
-            e.stopImmediatePropagation();
-        }, {
-            passive:false
+        this.root.style.overflow = "visible";
+
+
+        this.root.addEventListener("scroll", () => {
+            let rect1 = this.root.getBoundingClientRect();
+            let rect2 = this.bottomPlaceholder.getBoundingClientRect();
+            let rect3 = this.topPlaceholder.getBoundingClientRect();
+            if(rect2.top <= rect1.bottom) {
+                this.triggerEvent("scrolledToBottom")
+            }
+            if(rect3.top - rect1.top > 10) {
+                //this.topContent.innerText = ("到顶啦！");
+                this.triggerEvent("scrolledToTop")
+            }
         });
-        this[STATE_SYMBOL].h = 0;
+
+
     }
     mounted(){
 
@@ -44,6 +81,8 @@ export default class ScrollView {
     appendChild(child){
         this.children.push(child);
         child.appendTo(this.root);
+        this.root.appendChild(this.bottomPlaceholder);
+        this.root.insertBefore(this.topPlaceholder, this.root.firstChild);
     }
 
 
@@ -54,12 +93,22 @@ export default class ScrollView {
         if(name == "style") {
             return this.root.getAttribute("style");
         }
+
+        
         return this[ATTRIBUTE_SYMBOL][name]
     }
     setAttribute(name, value){
         if(name == "style") {
             this.root.setAttribute("style", value);
+            //this.root.style.overflow = "visible";
         }
+        if(name == "bottomText") {
+            this.bottomPlaceholder.innerText = value
+        }
+        if(name == "topText") {
+            this.topContent.innerText = value
+        }
+        
         return this[ATTRIBUTE_SYMBOL][name] = value;
     }
     addEventListener(type, listener){
@@ -72,10 +121,10 @@ export default class ScrollView {
             return;
         this[EVENT_SYMBOL][type].delete(listener);
     }
-    triggerEvent(type){
+    triggerEvent(type, event){
         if(!this[EVENT_SYMBOL][type])
             return;
         for(let event of this[EVENT_SYMBOL][type])
-            event.call(this);
+            event.call(this, event);
     }
 }
