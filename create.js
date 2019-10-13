@@ -20,7 +20,6 @@ export function create(Class, attributes, ...children){
         
     for(let child of children) {
         if(child instanceof Array) {
-            debugger;
             for(let c of child) {
                 if(typeof c === "string") {
                     object.appendChild(new Text(c));
