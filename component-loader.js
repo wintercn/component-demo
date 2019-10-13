@@ -1,9 +1,54 @@
 module.exports = function (source, map) {
     source = source.split("");
 
-    function emit(type, content){
-        console.log(type, content);
+
+    let stack = [{type: "document", children:[]}];
+    let currentTextNode = null;
+
+    function emit(token){
+        let top = stack[stack.length - 1];
+
+        if(token.type == "startTag") {
+            let element = {
+                type: "element",
+                children: []
+            };
+
+            for(let p in token) {
+                if(p != "type")
+                    element[p] = token[p];
+            }
+
+            top.children.push(element);
+
+            if(!token.isSelfClosing)
+                stack.push(element);
+
+            currentTextNode = null;
+            
+        } else if(token.type == "endTag") {
+            if(top.tagName != token.tagName) {
+                throw new Error("Tag start end doesn't match!");
+            } else {
+                stack.pop();
+            }
+            currentTextNode = null;
+
+        } else if(token.type == "text") {
+            if(currentTextNode == null) {
+                currentTextNode = {
+                    type: "text",
+                    content: ""
+                }
+                top.children.push(token);
+            }
+            currentTextNode.content += token.content;
+        }
     }
+
+
+    ////////////////////////////////////////
+
 
     const EOF = Symbol("EOF");
 
@@ -15,17 +60,20 @@ module.exports = function (source, map) {
     function data(c){
         if(c == "<") {
             return tagOpen;
-        } else if( c == "EOF") {
-            emit("EOF", c);
+        } else if( c == EOF) {
+            emit({
+                type:"EOF"
+            });
             return ;
         } else {
             emit({
-                type:"Text",
+                type:"text",
                 content:c
             });
             return data;
         }
     }
+
     function tagOpen(c){
         if(c == "/") {
             return endTagOpen;
@@ -36,7 +84,10 @@ module.exports = function (source, map) {
             }
             return tagName(c);
         } else {
-            emit("Text", c);
+            emit({
+                type: "text",
+                content : c
+            });
             return ;
         }
     }
@@ -134,7 +185,7 @@ module.exports = function (source, map) {
         }
     }
 
-    function AfterQuotedAttributeValue (){
+    function AfterQuotedAttributeValue (c){
         if(c.match(/^[\t\n\f ]$/)) {
             return beforeAttributeName;
         } else if(c == "/") {
@@ -227,6 +278,8 @@ module.exports = function (source, map) {
     }
 
 
+    /////////////////////////////////////
+
     let state = data;
 
 
@@ -236,6 +289,8 @@ module.exports = function (source, map) {
     }
 
     state(EOF);
+
+    console.log(stack[0]);
 
     return "123";
 }
