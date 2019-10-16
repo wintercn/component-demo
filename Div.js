@@ -52,7 +52,13 @@ export default class Div {
     }
     setAttribute(name, value){
         if(name == "style") {
-            this.root.setAttribute("style", value);
+            if(typeof value == "string") {
+                this.root.setAttribute("style", value);
+            } else if(typeof value == "object") {
+                console.log(value);
+                for(let p in value)
+                    this.root.style[p] = value[p];
+            }
         }
         return this[ATTRIBUTE_SYMBOL][name] = value;
     }

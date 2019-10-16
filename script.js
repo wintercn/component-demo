@@ -15,7 +15,7 @@ function loadMore(){
 }
 
 window.render = function(data, root){
-    var c = tree;
+    var c = <ListView data={[{a:1, b:2}]}></ListView>;
     c.appendTo(document.body);
 }
 

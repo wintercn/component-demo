@@ -1,12 +1,17 @@
 import {create} from "./create.js";
 import Div from "./Div.js";
+import css from "./ListViewStyle.js";
 
 const PROPERTY_SYMBOL = Symbol("property");
 const ATTRIBUTE_SYMBOL = Symbol("attribute");
 const EVENT_SYMBOL = Symbol("event");
 const STATE_SYMBOL = Symbol("state");
 
-
+if(!window.__LIST_VIEW_STYLE) {
+    window.__LIST_VIEW_STYLE = document.createElement("style");
+    window.__LIST_VIEW_STYLE.innerHTML = css;
+    document.getElementsByTagName("head")[0].appendChild(window.__LIST_VIEW_STYLE);
+}
 
 export default class ListView {
     constructor(config){
@@ -28,6 +33,7 @@ export default class ListView {
 
     created(){
         this.root = document.createElement("div");
+        this.root.classList.add("list-view");
         this.render().appendTo(this.root);
     }
     mounted(){
@@ -47,7 +53,11 @@ export default class ListView {
             hello
             { 
                 data.map(item => (
-                    <div><span class="x">{item.a}</span><span class="x">{item.b}</span></div>
+                    <div>
+                        <Div style={css.button}> abc </Div>
+                        <span style={css} class="x">{item.a}</span>
+                        <span class="x">{item.b}</span>
+                    </div>
                 ))
             }
         </div>
