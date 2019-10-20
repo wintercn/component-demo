@@ -15,7 +15,10 @@ function loadMore(){
 }
 
 window.render = function(data, root){
-    var c = tree;
+    var c = <div>
+        <span class="x">abc</span>
+        <ListView style="abc:1" data={[{a:1, b:2}]}></ListView>
+    </div>
     c.appendTo(document.body);
 }
 
